@@ -19,6 +19,8 @@ class CSV
         void calc_col_width (void);
         void read (std::istream&, const bool);
         void read (const std::string&, const bool);
+        void write (std::ostream&);
+        void write (const std::string&);
 };
 
 void CSV::read (std::istream& input, const bool repeated_sep = false)
@@ -73,7 +75,29 @@ void CSV::read (const std::string& filename, const bool repeated_sep = false)
     input.close();
 }
 
-void CSV::calc_col_width (void) {
+void CSV::write (std::ostream& output)
+{
+    for (size_t irow = 0; irow != data.size(); irow++) {
+        for (size_t icol = 0; icol != data[irow].size(); icol++) {
+            output << data[irow][icol];
+            if (icol < data[irow].size() - 1) {
+                output << sep;
+            }
+        }
+        output << newline;
+    }
+}
+
+void CSV::write (const std::string& filename)
+{
+    std::ofstream output;
+    output.open(filename);
+    write(output);
+    output.close();
+}
+
+void CSV::calc_col_width (void)
+{
     for (size_t irow = 0; irow != data.size(); irow++) {
         for (size_t icol = 0; icol != data[irow].size(); icol++) {
             if (col_width.size() <= icol) {
@@ -84,7 +108,8 @@ void CSV::calc_col_width (void) {
     }
 }
 
-std::ostream& operator<< (std::ostream &out, CSV const& csv) {
+std::ostream& operator<< (std::ostream &out, CSV const& csv)
+{
     for (size_t irow = 0; irow != csv.data.size(); irow++) {
         for (size_t icol = 0; icol != csv.data[irow].size(); icol++) {
             out << std::string(csv.col_width[icol] - csv.data[irow][icol].length(), ' ');
@@ -97,24 +122,34 @@ std::ostream& operator<< (std::ostream &out, CSV const& csv) {
     }
 }
 
-int main ()
+int main (int argc, char *argv[])
 {
     std::string ifilename;
-    std::cout << "Choose a CSV file to edit: ";
-    std::cin >> ifilename;
+    std::string ofilename;
+
+    if (argc <= 1) {
+        std::cout << "Usage: " << argv[0] << " /path/to/input.csv [/path/to/output.csv]" << std::endl;
+        return 1;
+    }
+    else if (argc <= 2) {
+        ifilename = argv[1];
+        ofilename = argv[1];
+    }
+    else {
+        ifilename = argv[1];
+        ofilename = argv[2];
+    }
+
+    //std::cout << ifilename << " >> " << ofilename << std::endl;
 
     CSV my_csv;
-    my_csv.col_delimiter = "   ";
-    my_csv.read(ifilename);
+    my_csv.sep = ' ';
+    my_csv.col_delimiter = " ] ";
+    my_csv.read(ifilename, true);
     std::cout << my_csv;
 
-    std::string ofilename;
-    std::cout << "Choose an output file: ";
-    std::cin >> ofilename;
-    std::ofstream ofile;
-    ofile.open(ofilename);
-    ofile << my_csv;
-    ofile.close();
+    my_csv.sep = ',';
+    my_csv.write(std::cout);
 
     return 0;
 }
