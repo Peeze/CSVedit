@@ -19,8 +19,12 @@ class CSV
         void calc_col_width (void);
         void read (std::istream&, const bool);
         void read (const std::string&, const bool);
-        void write (std::ostream&);
-        void write (const std::string&);
+
+        void write (std::ostream&)      const;  //write as CSV to ostring
+        void write (const std::string&) const;  //to file of name
+
+        void print (std::ostream&)      const;  //print as visual table to ostring
+        void print (const std::string&) const;  //to file of name
 
         //void insert (int, CSV);
         void append (CSV);
@@ -78,7 +82,7 @@ void CSV::read (const std::string& filename, const bool repeated_sep = false)
     input.close();
 }
 
-void CSV::write (std::ostream& output)
+void CSV::write (std::ostream& output) const
 {
     for (size_t irow = 0; irow < data.size(); irow++) {
         for (size_t icol = 0; icol < data[irow].size(); icol++) {
@@ -91,7 +95,7 @@ void CSV::write (std::ostream& output)
     }
 }
 
-void CSV::write (const std::string& filename)
+void CSV::write (const std::string& filename) const
 {
     std::ofstream output;
     output.open(filename);
@@ -106,6 +110,7 @@ void CSV::calc_col_width (void)
             if (col_width.size() <= icol) {
                 col_width.push_back(0);
             }
+            //TODO: check for ' ' in cell to adapt col_width to possible use of quotes
             col_width[icol] = std::max(col_width[icol], data[irow][icol].length());
         }
     }
@@ -117,17 +122,32 @@ void CSV::append(CSV other) {
 }
 
 
-std::ostream& operator<< (std::ostream &out, CSV const& csv)
+void CSV::print(std::ostream &output) const
 {
-    for (size_t irow = 0; irow < csv.data.size(); irow++) {
-        for (size_t icol = 0; icol < csv.data[irow].size(); icol++) {
-            out << std::string(csv.col_width[icol] - csv.data[irow][icol].length(), ' ');
-            out << csv.data[irow][icol];
-            if (icol < csv.data[irow].size() - 1) {
-                out << csv.col_delimiter;
+    for (size_t irow = 0; irow < data.size(); irow++) {
+        for (size_t icol = 0; icol < data[irow].size(); icol++) {
+            output << std::string(col_width[icol] - data[irow][icol].length(), ' ');
+            output << data[irow][icol];
+            if (icol < data[irow].size() - 1) {
+                output << col_delimiter;
             }
         }
-        out << std::endl;
+        output << std::endl;
     }
+}
+
+
+void CSV::print (const std::string& filename) const
+{
+    std::ofstream output;
+    output.open(filename);
+    print(output);
+    output.close();
+}
+
+
+std::ostream& operator<< (std::ostream &out, CSV const& csv)
+{
+    csv.print(out);
     return out;
 }

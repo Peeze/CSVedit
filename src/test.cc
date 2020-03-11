@@ -28,14 +28,14 @@ int main (int argc, char *argv[])
     //std::cout << ifilename << " >> " << ofilename << std::endl;
 
     CSV my_csv;
-    my_csv.sep = ' ';
-    my_csv.col_delimiter = " ] ";
+    my_csv.sep = ',';
+    //my_csv.col_delimiter = " | ";
     my_csv.read(ifilename, true);
     std::cout << my_csv;
 
     my_csv.sep = ',';
     my_csv.append(my_csv);
-    my_csv.write(std::cout);
+    //my_csv.write(std::cout);
 
     return 0;
 }
